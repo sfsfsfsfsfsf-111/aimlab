@@ -458,7 +458,7 @@
             saveScore(currentUser, score);
 
             // 判斷是否為 heiyi，導向專屬頁面
-            if (currentUser.toLowerCase() === 'heiyi') {
+            if (checkName === 'heiyi' || checkName === 'heie') {
                 switchPage('pageBirthday');
             } else {
                 switchPage('pageMenu');
