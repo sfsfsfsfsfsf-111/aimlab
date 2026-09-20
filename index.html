@@ -301,7 +301,7 @@
             appId: "1:331843464719:web:2e3ce71c378a295ef1bd7a",
             measurementId: "G-RK4SW2P5R6"
         };
-
+        
         // 🚀 初始化 Firebase（優先啟動雲端，若環境受阻自動相容本地）
         let database = null;
         try {
@@ -309,8 +309,9 @@
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
                 console.log("【智慧連網】：Firebase 新加坡雲端連線成功！");
-            }elsa {
-            console.error("【智慧連網】：雲端初始化受阻，已自動啟用本地模式備用：");
+            }
+        } catch (e) {
+            console.error("【智慧連網】：雲端初始化受阻，已自動啟用本地模式備用：", e);
         }
 
         let currentUser = "";
@@ -510,4 +511,3 @@
     </script>
 </body>
 </html>
-
