@@ -283,14 +283,12 @@
         </div>
     </div>
 
-    <!-- 引入 Firebase 核心與 Realtime Database 的 SDK 庫 -->
+        <!-- 引入 Firebase 核心與 Realtime Database 的 SDK 庫 -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
-
 
     <script>
-        // ⚠️ 請在此處貼上你在 Firebase 官網複製拿到的專屬 config 設定 ⚠️
-                // 🎯 已經完全對齊你後台真實數據的 100% 正確雲端金鑰 🎯
+        // 🎯 已完全對齊你後台真實數據的 100% 正確新加坡雲端金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyD1ubSD8FSrAZbtxdMH40-iAAUsKGPXVA4",
             authDomain: "heiyiii.firebaseapp.com",
@@ -302,18 +300,16 @@
             measurementId: "G-RK4SW2P5R6"
         };
 
-        // 🚀 雲端防卡死初始化：連得上用雲端，連不上自動轉本地備用
+        // 🚀 初始化 Firebase（雲端優先，若環境受阻自動無縫相容本地儲存）
         let database = null;
         try {
-            if (typeof firebase !== 'undefined' && firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "你的_API_KEY") {
+            if (typeof firebase !== 'undefined' && firebaseConfig && firebaseConfig.apiKey) {
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
-                console.log("Firebase 雲端連線成功！");
-            } else {
-                console.log("未檢測到真實 Firebase 金鑰，目前運行於【本地測試模式】。");
+                console.log("Firebase 新加坡雲端連線成功！");
             }
         } catch (e) {
-            console.error("Firebase 初始化失敗，自動啟用【本地備用模式】:", e);
+            console.error("Firebase 初始化失敗，自動啟用本地備用模式:", e);
         }
 
         let currentUser = "";
@@ -439,7 +435,7 @@
             }
         }
 
-        // 儲存分數（支援雲端/本地自動切換）
+        // 儲存分數：雲端優先，連不上自動保留本地紀錄
         function saveScore(name, newScore) {
             if (database) {
                 const userRef = database.ref('leaderboard/' + name);
@@ -449,20 +445,20 @@
                         userRef.set({ name: name, score: newScore, timestamp: Date.now() });
                     }
                 });
-            } else {
-                let leaderboard = JSON.parse(localStorage.getItem('birthday_leaderboard')) || [];
-                const existingPlayer = leaderboard.find(p => p.name === name);
-                if (existingPlayer) {
-                    if (newScore > existingPlayer.score) existingPlayer.score = newScore;
-                } else {
-                    leaderboard.push({ name: name, score: newScore });
-                }
-                leaderboard.sort((a, b) => b.score - a.score);
-                localStorage.setItem('birthday_leaderboard', JSON.stringify(leaderboard));
             }
+            
+            let leaderboard = JSON.parse(localStorage.getItem('birthday_leaderboard')) || [];
+            const existingPlayer = leaderboard.find(p => p.name === name);
+            if (existingPlayer) {
+                if (newScore > existingPlayer.score) existingPlayer.score = newScore;
+            } else {
+                leaderboard.push({ name: name, score: newScore });
+            }
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('birthday_leaderboard', JSON.stringify(leaderboard));
         }
 
-        // 顯示排行榜（支援雲端/本地自動切換）
+        // 顯示排行榜：雲端優先，若超過3秒未載入自動呈現本地排行
         function showLeaderboard() {
             const listElement = document.getElementById('leaderboardList');
             if (!listElement) return;
@@ -470,19 +466,33 @@
 
             if (database) {
                 listElement.innerHTML = "<li class='leaderboard-item' style='justify-content:center;'>正在加載雲端數據...</li>";
+                
+                let cloudTimeoutTrigger = setTimeout(() => {
+                    loadLocalLeaderboard();
+                }, 3000);
+
                 database.ref('leaderboard').orderByChild('score').limitToLast(10).once('value', (snapshot) => {
+                    clearTimeout(cloudTimeoutTrigger);
                     listElement.innerHTML = "";
                     let players = [];
                     snapshot.forEach((childSnapshot) => { players.push(childSnapshot.val()); });
                     players.reverse();
                     renderList(players);
+                }, (error) => {
+                    clearTimeout(cloudTimeoutTrigger);
+                    loadLocalLeaderboard();
                 });
             } else {
+                loadLocalLeaderboard();
+            }
+
+            function loadLocalLeaderboard() {
                 let leaderboard = JSON.parse(localStorage.getItem('birthday_leaderboard')) || [];
                 renderList(leaderboard);
             }
 
             function renderList(list) {
+                listElement.innerHTML = "";
                 if (list.length === 0) {
                     listElement.innerHTML = "<li class='leaderboard-item' style='justify-content:center;'>暫無排行紀錄</li>";
                     return;
