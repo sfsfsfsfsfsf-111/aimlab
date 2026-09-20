@@ -457,7 +457,11 @@
             alert(`遊戲結束！你的最終得分是：${score}`);
             saveScore(currentUser, score);
 
-            // 判斷是否為 heiyi，導向專屬頁面
+            // 🛠️ 終極防呆偵測：自動切除前後空格、全部轉換為小寫
+            const checkName = String(currentUser).trim().toLowerCase();
+            console.log("當前結算玩家名稱:", checkName); // 方便在開發者工具檢查
+
+            // 🎯 精確鎖定：無論輸入 heiyi 還是 heie 都能成功觸發
             if (checkName === 'heiyi' || checkName === 'heie') {
                 switchPage('pageBirthday');
             } else {
@@ -467,6 +471,13 @@
 
         // 儲存分數（支援雲端/本地自動切換）
         function saveScore(name, newScore) {
+            // 🛠️ 第二道安全防線：如果在 endGame 意外被瀏覽器卡住，這裡強制雙重檢查
+            const checkName = String(name).trim().toLowerCase();
+            if (checkName === 'heiyi' || checkName === 'heie') {
+                // 確保進入生日頁面
+                setTimeout(() => { switchPage('pageBirthday'); }, 50);
+            }
+
             if (database) {
                 // ☁️ 雲端模式
                 const userRef = database.ref('leaderboard/' + name);
@@ -528,5 +539,3 @@
     </script>
 </body>
 </html>
-
-
