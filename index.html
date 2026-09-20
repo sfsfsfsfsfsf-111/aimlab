@@ -309,9 +309,8 @@
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
                 console.log("【智慧連網】：Firebase 新加坡雲端連線成功！");
-            }
-        } catch (e) {
-            console.error("【智慧連網】：雲端初始化受阻，已自動啟用本地模式備用：", e);
+            }elsa {
+            console.error("【智慧連網】：雲端初始化受阻，已自動啟用本地模式備用：");
         }
 
         let currentUser = "";
