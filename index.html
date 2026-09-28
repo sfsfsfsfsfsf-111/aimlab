@@ -224,12 +224,103 @@
 
         .letter-content::-webkit-scrollbar { width: 5px; }
         .letter-content::-webkit-scrollbar-thumb { background: #dcd1b4; border-radius: 3px; }
+            /* --- 🎈 點陣小氣球與流星樣式 --- */
+        .header-decor-container {
+            position: absolute;
+            top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .pixel-balloon {
+            font-size: 24px;
+            animation: balloonFloat 4s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
+        }
+        .balloon-2 { animation-delay: 1.5s; }
+        @keyframes balloonFloat {
+            0% { transform: translateY(0) rotate(-5deg); }
+            100% { transform: translateY(-12px) rotate(5deg); }
+        }
+        
+        /* ☄️ 漸層流星特效背景 */
+        body::before {
+            content: "";
+            position: absolute;
+            top: -10%; left: -10%; width: 120%; height: 120%;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 150px 50px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 80px 250px, #aaa, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 220px 180px, #fff, rgba(0,0,0,0));
+            background-size: 300px 300px;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- 🔓 信封拆開與解鎖印章樣式 --- */
+        .easter-egg-seal {
+            background: linear-gradient(135deg, #ff7675, #ff4757);
+            color: #ffffff !important;
+            font-size: 11px !important;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            border: 2px solid #ffffff;
+            animation: sealPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+            font-family: monospace;
+        }
+        @keyframes sealPop {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            70% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        /* 讓拆信卡片登場時有微微往上飄的優雅動態 */
+        .letter-box {
+            animation: letterOpen 0.8s cubic-bezier(0.1, 0.8, 0.2, 1) both;
+        }
+        @keyframes letterOpen {
+            0% { transform: translateY(30px); opacity: 0; filter: blur(3px); }
+            100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+        }
+                /* --- 薰衣草紫花瓣飄落畫布樣式 --- */
+        #petalCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 確保滑鼠可以穿過花瓣，不影響希兒滑動看信 */
+            z-index: 1;
+        }
+        
+        /* 確保信件卡片浮在花瓣上方 */
+        .letter-box {
+            position: relative;
+            z-index: 2;
+        }
+
+
     </style>
 </head>
 <body>
 
     <!-- 頁面 1：輸入名字 -->
     <div id="pageLogin" class="page active">
+        <div class="header-decor-container">
+            <span class="pixel-balloon">🎈</span>
+            <span class="pixel-balloon balloon-2">✨</span>
+            <span class="pixel-balloon">🎈</span>
+        </div>
         <h1>AimLab</h1>
         <p>請輸入你的名字以加入排行榜：</p>
         <input type="text" id="usernameInput" placeholder="輸入玩家名稱..." maxlength="10">
@@ -263,10 +354,15 @@
     </div>
 
     <!-- 頁面 5：生日快樂頁面 (heiyi 專屬書信彩蛋) -->
+        <!-- 頁面 5：生日快樂頁面 (heiyi 專屬書信彩蛋) -->
     <div id="pageBirthday" class="page birthday-page-bg">
+        <canvas id="petalCanvas"></canvas>
+        
         <div class="letter-box">
-            <h1 class="letter-title">Heiyi，生日快樂！</h1>
-            
+            <!-- 🎯 加上這一行：拆信專屬解鎖動態印章 -->
+            <div class="easter-egg-seal">🔓 Special Easter Egg Unlocked</div>
+
+            <h1 class="letter-title">🎉 希兒，生日快樂！</h1>
             <div class="letter-content">
                 <p class="letter-text">致Heiyi：</p>
                 <p class="letter-text">雖然我哋認識嘅時間唔係算好長，但我就覺得你係一個幾好嘅人。</p>
@@ -301,10 +397,83 @@
         let currentCircleTime = 5000; 
         let timeLeft = 0;
 
+                // 🚀 全新升級版頁面跳轉：當切換到生日頁面時，自動開通浪漫花瓣動畫
+        let petalAnimationId = null;
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const targetPage = document.getElementById(pageId);
             if (targetPage) targetPage.classList.add('active');
+            
+            // 🎯 智慧偵測：如果進入的是生日快樂頁面，啟動和倉薰子飄雪花瓣效果
+            if (pageId === 'pageBirthday') {
+                startPetalFall();
+            } else {
+                // 如果離開生日頁面，自動關閉動畫節省效能
+                if (petalAnimationId) cancelAnimationFrame(petalAnimationId);
+            }
+        }
+
+        // 🌸 薰衣草紫浪漫花瓣物理飄落引擎
+        function startPetalFall() {
+            const canvas = document.getElementById('petalCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // 讓畫布完全填滿整個螢幕大小
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const petals = [];
+            // 產生 35 片浪漫花瓣
+            for (let i = 0; i < 35; i++) {
+                petals.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 4 + 2, // 花瓣半徑
+                    d: Math.random() * 10 + 10, // 飄落速度
+                    amplitude: Math.random() * 20 + 10, // 左右擺動幅度
+                    swingSpeed: Math.random() * 0.02 + 0.01, // 擺動速度
+                    degree: Math.random() * 360,
+                    // 薰衣草紫色系隨機微調（包含浪漫紫、粉紫、薰衣草淺紫）
+                    color: ['rgba(150, 115, 210, 0.6)', 'rgba(180, 150, 230, 0.5)', 'rgba(210, 185, 250, 0.6)', 'rgba(230, 210, 255, 0.4)'][Math.floor(Math.random() * 4)]
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                petals.forEach(p => {
+                    ctx.save();
+                    p.degree += p.swingSpeed;
+                    // 計算左右飄逸的物理軌跡
+                    const currentX = p.x + Math.sin(p.degree) * p.amplitude;
+                    
+                    ctx.beginPath();
+                    // 繪製半透明的橢圓形柔和花瓣
+                    ctx.translate(currentX, p.y);
+                    ctx.rotate(p.degree * Math.PI / 180);
+                    ctx.ellipse(0, 0, p.r * 1.5, p.r, 0, 0, 2 * Math.PI);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 往下掉落
+                    p.y += p.d * 0.1;
+
+                    // 如果花瓣掉出螢幕最下方，重新回到頂部循環飄落
+                    if (p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+                
+                petalAnimationId = requestAnimationFrame(draw);
+            }
+            draw();
         }
 
         function login() {
