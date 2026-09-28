@@ -411,34 +411,34 @@
             }
         }
 
-        // 🌸 薰衣草紫浪漫花瓣物理飄落引擎
+                // 🌸 日系吉野櫻花粉色花瓣物理飄落核心（終極純淨無黑邊版）
         function startPetalFall() {
             const canvas = document.getElementById('petalCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             
-            // 讓畫布完全填滿整個螢幕大小
             function resizeCanvas() {
                 canvas.width = canvas.parentElement.clientWidth;
                 canvas.height = canvas.parentElement.clientHeight;
             }
             resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
 
             const petals = [];
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 38; i++) {
                 petals.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height - canvas.height,
-                    r: Math.random() * 4 + 2, // 花瓣半徑
-                    d: Math.random() * 10 + 10, // 飄落速度
-                    amplitude: Math.random() * 20 + 10, // 左右擺動幅度
-                    swingSpeed: Math.random() * 0.02 + 0.01, // 擺動速度
+                    r: Math.random() * 4 + 2.5, 
+                    d: Math.random() * 8 + 12, 
+                    amplitude: Math.random() * 25 + 10, 
+                    swingSpeed: Math.random() * 0.02 + 0.01, 
                     degree: Math.random() * 360,
-                    // 薰衣草紫色系隨機微調（包含浪漫紫、粉紫、薰衣草淺紫）
                     color: [
-'rgba(255, 182, 193, 0.65)', /* 落櫻淺粉 /'rgba(255, 192, 203, 0.6)',  / 柔和櫻粉 /'rgba(255, 218, 224, 0.5)'  / 透光白粉 /,'rgba(240, 128, 128, 0.45)'  / 微風緋紅 */
-][Math.floor(Math.random() * 4)]
+                        'rgba(255, 182, 193, 0.75)', /* 落櫻淺粉 */
+                        'rgba(255, 192, 203, 0.7)',  /* 柔和櫻粉 */
+                        'rgba(255, 218, 224, 0.65)', /* 透光白粉 */
+                        'rgba(255, 160, 175, 0.6)'   /* 微風微緋 */
+                    ][Math.floor(Math.random() * 4)]
                 });
             }
 
@@ -448,32 +448,36 @@
                 petals.forEach(p => {
                     ctx.save();
                     p.degree += p.swingSpeed;
-                    // 計算左右飄逸的物理軌跡
                     const currentX = p.x + Math.sin(p.degree) * p.amplitude;
                     
+                    // 🎯 核心修復：強制清除上一次的任何繪圖殘留與陰影設定，確保沒有黑色！
+                    ctx.shadowBlur = 0;
+                    ctx.shadowColor = "transparent";
+                    ctx.strokeStyle = "transparent";
+                    
                     ctx.beginPath();
-                    // 繪製半透明的橢圓形柔和花瓣
                     ctx.translate(currentX, p.y);
                     ctx.rotate(p.degree * Math.PI / 180);
-                    ctx.ellipse(0, 0, p.r * 1.5, p.r, 0, 0, 2 * Math.PI);
+                    
+                    // 繪製粉嫩櫻花瓣的完美橢圓
+                    ctx.ellipse(0, 0, p.r * 1.6, p.r, 0, 0, 2 * Math.PI);
+                    
+                    // 🎯 核心修復：在 fill() 之前再次強制指定顏色，100% 阻絕黑色
                     ctx.fillStyle = p.color;
                     ctx.fill();
                     ctx.restore();
 
-                    // 往下掉落
                     p.y += p.d * 0.1;
-
-                    // 如果花瓣掉出螢幕最下方，重新回到頂部循環飄落
                     if (p.y > canvas.height) {
                         p.y = -20;
                         p.x = Math.random() * canvas.width;
                     }
                 });
-                
                 petalAnimationId = requestAnimationFrame(draw);
             }
             draw();
         }
+
 
         function login() {
             const nameInput = document.getElementById('usernameInput');
